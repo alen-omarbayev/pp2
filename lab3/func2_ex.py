@@ -31,3 +31,14 @@ def average_score(movies):
     return result
 
 print(average_score(movies))
+
+#5
+def category_average_score(movies):
+    avrg=0
+    for movie in movies:
+        if movie["category"]==category_type:
+            avrg+=movie["imdb"]
+    return avrg/len(movies)
+
+category_type=str(input())
+print (category_average_score(movies))
