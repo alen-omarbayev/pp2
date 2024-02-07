@@ -6,3 +6,9 @@ def IMDB_score(movies):
 print(IMDB_score(movies))
 
 #2
+def sublist_IMDB(movies):
+     return movies["imdb"] > 5.5
+
+filtered_movies= list(filter(sublist_IMDB, movies))
+for movie in filtered_movies:
+    print(movie)
