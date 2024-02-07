@@ -21,3 +21,13 @@ def get_categories(movies):
   
 type_of_category=str(input())
 get_categories(movies)
+
+#4
+def average_score(movies):
+    average=0
+    for movie in movies:
+        average+=movie["imdb"]
+    result=average/len(movies)
+    return result
+
+print(average_score(movies))
