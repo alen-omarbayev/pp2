@@ -15,12 +15,13 @@ ball_y = 300
 ball_speed = 20
 
 clock = pygame.time.Clock()
+running = True
+while running:
+    screen.fill((0, 0, 0))
 
-while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+            running = False
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP]:
