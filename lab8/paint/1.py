@@ -1,108 +1,113 @@
-import pygame
+import pygame 
+import math
 
-def main():
-    pygame.init()  #initialize pygame
-    screen = pygame.display.set_mode((640, 480))  #set up display
-    clock = pygame.time.Clock()  #create a clock to control the frame rate
-    
-    #initialize variables
-    radius = 15
-    mode = 'blue'
-    points = []
-    drawing = False
-    eraser = False
-    current_color = (255, 255, 255)  #initial color is white
-    
-    running = True  #flag to control the main loop
-    while running:  
-        for event in pygame.event.get():  
+pygame.init()
+
+#set color
+WHITE = (255,255,255)
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+BLACK = (0,0,0)
+
+COLOR = RED   
+
+#fps
+clock = pygame.time.Clock()
+FPS = 30
+
+# varibles
+prev, cur = None, None  #for pen
+prev1, cur1 = None, None #for eraser
+
+#screen
+lenght, weight = 1000, 600
+screen = pygame.display.set_mode((lenght,weight))
+screen.fill(WHITE)
+running = True
+
+pen = "mouse"
+last_event = None
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        #buttons to change modes
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                pen = "mouse"
+            if event.key == pygame.K_w:
+                pen = "rect"
+            if event.key == pygame.K_e:
+                pen = "circle"
+            if event.key == pygame.K_r:
+                pen = "eraser"
             
-            if event.type == pygame.QUIT:  
-                running = False  
-                
-            if event.type == pygame.KEYDOWN:  #check if a key is pressed
-                
-                #change drawing mode based on key pressed
-                if event.key == pygame.K_r:
-                    mode = 'red'
-                elif event.key == pygame.K_g:
-                    mode = 'green'
-                elif event.key == pygame.K_b:
-                    mode = 'blue'
-                elif event.key == pygame.K_e:  #toggle eraser mode
-                    eraser = not eraser
-                elif event.key == pygame.K_c:  #change current color
-                    current_color = pygame.color.THECOLORS['black']  #default color is black
+            #buttons to change color
+            if event.key == pygame.K_z:
+                COLOR = RED
+            if event.key == pygame.K_x:
+                COLOR = GREEN
+            if event.key == pygame.K_c:
+                COLOR  = BLUE
+            if event.key == pygame.K_v:
+                COLOR = BLACK
+
+        #drawing by mouse  
+        if pen == "mouse" :
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                prev = pygame.mouse.get_pos()
+            if event.type == pygame.MOUSEMOTION:
+                cur = pygame.mouse.get_pos()
+            if prev:
+                pygame.draw.line(screen, COLOR, prev, cur, 1)
+                prev = cur
+            if event.type == pygame.MOUSEBUTTONUP:
+                prev = None
             
-            if event.type == pygame.MOUSEBUTTONDOWN:  #check if a mouse button is pressed
-                
-                #start drawing or erasing based on the mouse button clicked
-                if event.button == 1:  #left click grows radius
-                    drawing = True
-                elif event.button == 3:  #right click shrinks radius and activates eraser
-                    drawing = True
-                    eraser = True
-            
-            if event.type == pygame.MOUSEMOTION:  #check if mouse is moved
-                
-                if drawing:  #if drawing flag is True
-                    
-                    #add current mouse position to points list
-                    position = event.pos
-                    points.append(position)
-                    points = points[-256:]  #limit points list to last 256 points
-                
-            if event.type == pygame.MOUSEBUTTONUP:  #check if a mouse button is released
-                drawing = False  
-        
-        screen.fill((0, 0, 0))  
-        #draw based on mode and eraser state
-        if not eraser:
-            draw_with_mode(screen, points, radius, mode, current_color)
-        else:
-            draw_eraser(screen, points, radius)
-        
-        pygame.display.flip()  
-        clock.tick(60)  
-    
-    pygame.quit()  
+        #drawing rectangle
+        if pen == "rect":
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y =pygame.mouse.get_pos()
+                last_event = "DOWN"
+            if event.type == pygame.MOUSEBUTTONUP:
+                x1, y1 =pygame.mouse.get_pos()
+                last_event = "UP"
+            if last_event == "UP":
+                pygame.draw.line(screen, COLOR, (x,y), (x1, y), 1)
+                pygame.draw.line(screen, COLOR, (x1,y), (x1, y1), 1)
+                pygame.draw.line(screen, COLOR, (x1,y1), (x, y1), 1)
+                pygame.draw.line(screen, COLOR, (x,y1), (x, y), 1)
+                last_event = 'None'
 
-def draw_with_mode(screen, points, radius, mode, color):
-    #draw lines between points on the screen
-    i = 0
-    while i < len(points) - 1:
-        drawLineBetween(screen, i, points[i], points[i + 1], radius, mode, color)
-        i += 1
+        #drawing circle
+        if pen == "circle" :
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y =pygame.mouse.get_pos()
+                last_event = "DOWN"
+            if event.type == pygame.MOUSEBUTTONUP:
+                x1, y1 =pygame.mouse.get_pos()
+                last_event = "UP"
+            if last_event == "UP":
+                pygame.draw.circle(screen, COLOR, (x+(x1-x)/2, y+(y1-y)/2), (x1-x)/2 )
+                pygame.draw.circle(screen, WHITE, (x+(x1-x)/2, y+(y1-y)/2), ((x1-x)/2)-1)
+                last_event = 'None'
 
-def drawLineBetween(screen, index, start, end, width, color_mode, color):
-    #draw a line between two points on the screen
-    c1 = max(0, min(255, 2 * index - 256))
-    c2 = max(0, min(255, 2 * index))
-    
-    #determine color based on mode
-    if color_mode == 'blue':
-        color = (c1, c1, c2)
-    elif color_mode == 'red':
-        color = (c2, c1, c1)
-    elif color_mode == 'green':
-        color = (c1, c2, c1)
-    
-    #calculate the difference between start and end points
-    dx = start[0] - end[0]
-    dy = start[1] - end[1]
-    iterations = max(abs(dx), abs(dy))
-    
-    #iterate over the line and draw circles
-    for i in range(iterations):
-        progress = 1.0 * i / iterations
-        aprogress = 1 - progress
-        x = int(aprogress * start[0] + progress * end[0])
-        y = int(aprogress * start[1] + progress * end[1])
-        pygame.draw.circle(screen, color, (x, y), width)
+        #eraser
+        if pen == "eraser" :
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                prev1 = pygame.mouse.get_pos()
+            if event.type == pygame.MOUSEMOTION:
+                cur1 = pygame.mouse.get_pos()
+            if prev1:
+                pygame.draw.line(screen, WHITE, prev1, cur1, 10)
+                prev1 = cur1
+            if event.type == pygame.MOUSEBUTTONUP:
+                prev1 = None
 
-def draw_eraser(screen, points, radius):
-    #draw circles on the screen to act as an eraser.
-    for point in points:
-        pygame.draw.circle(screen, (0, 0, 0), point, radius)
+    pygame.display.flip()
+    
+    clock.tick(30)
 
-main()  
+pygame.quit()
